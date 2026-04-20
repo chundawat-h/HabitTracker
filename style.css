@@ -34,11 +34,12 @@ cursor:pointer;
 
 .tableContainer{
 
-background:white;
+background:rgb(255, 255, 255);
 padding:10px;
 border-radius:10px;
 max-height:400px;
-overflow:auto;
+overflow-y:auto;
+overflow-x:auto;
 
 }
 
@@ -47,13 +48,17 @@ table{
     table-layout: fixed; /* enforce column widths */
 }
 
-/* first column holds habit names */
+/* first column holds habit names - make it sticky */
 table th:first-child,
 table td:first-child {
     max-width:200px; /* adjust as needed */
     white-space: nowrap; /* avoid wrapping for short names */
     overflow-wrap: break-word; /* break long words if exceeding */
     word-wrap: break-word;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: rgb(248, 246, 116);
 }
 th,td{
 
@@ -66,6 +71,10 @@ font-size:12px;
 th{
 background:#6c5ce7;
 color:white;
+}
+
+table th:first-child {
+    background: #6c5ce7;
 }
 
 td{
@@ -179,4 +188,100 @@ td.today {
 
 .restartBtn:hover {
     opacity: 0.85;
+}
+
+/* Weekly Tasks Section */
+.weeklySection {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: left;
+}
+
+.weeklySection input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+#weeklyTaskList {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+#weeklyTaskList li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    gap: 10px;
+}
+
+#weeklyTaskList li input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+#weeklyTaskList li span {
+    flex: 1;
+    word-break: break-word;
+}
+
+#weeklyTaskList li.completed span {
+    text-decoration: line-through;
+    color: #999;
+}
+
+#weeklyTaskList .deleteBtn {
+    padding: 5px 10px;
+    font-size: 12px;
+    background: #ff7675;
+    color: white;
+}
+
+#weeklyTaskList .deleteBtn:hover {
+    opacity: 0.85;
+}
+
+/* Notes Section */
+.notesSection {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: left;
+}
+
+#notesArea {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    resize: vertical;
+}
+
+.notesSection button {
+    background: #00b894;
+    color: white;
+}
+
+.notesSection button:hover {
+    opacity: 0.85;
+}
+
+h2 {
+    color: white;
+    margin-top: 30px;
 }

@@ -1,7 +1,11 @@
 const STORAGE_HABITS = "habits";
 const STORAGE_START_DATE = "startDate";
+const STORAGE_WEEKLY_TASKS = "weeklyTasks";
+const STORAGE_NOTES = "notes";
 
 let habits = JSON.parse(localStorage.getItem(STORAGE_HABITS)) || [];
+let weeklyTasks = JSON.parse(localStorage.getItem(STORAGE_WEEKLY_TASKS)) || [];
+let notes = localStorage.getItem(STORAGE_NOTES) || "";
 
 const MAX_HABITS = 40;
 const DAYS = 365;
@@ -63,6 +67,12 @@ function createHeader() {
 }
 
 createHeader();
+
+// Initialize notes
+document.getElementById("notesArea").value = notes;
+
+// Render weekly tasks on load
+renderWeeklyTasks();
 
 function addHabit() {
     if (habits.length >= MAX_HABITS) {
@@ -149,6 +159,13 @@ function updateCharts() {
     const daysElapsed = currentDayIndex + 1;
     const elapsedTotals = totals.slice(0, daysElapsed);
 
+    // Calculate daily completion percentage for each day
+    const dailyPercentages = elapsedTotals.map(dayTotal => {
+        if (habits.length === 0) return 0;
+        return (dayTotal / habits.length * 100).toFixed(1);
+    });
+
+    // Overall completion stats
     const completed = elapsedTotals.reduce((a, b) => a + b, 0);
     const maxPossible = habits.length * daysElapsed;
     const missed = maxPossible - completed;
@@ -169,13 +186,30 @@ function updateCharts() {
             labels: [...Array(daysElapsed).keys()].map((x) => x + 1),
             datasets: [
                 {
-                    label: "Daily Habit Completion",
-                    data: elapsedTotals,
-                    borderColor: "#6c5ce7",
-                    fill: false,
+                    label: "Daily Completion %",
+                    data: dailyPercentages,
+                    borderColor: "#0984e3",
+                    backgroundColor: "rgba(9, 132, 227, 0.1)",
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#0984e3",
                 },
             ],
         },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: "Completion %"
+                    }
+                }
+            }
+        }
     });
 
     pieChart = new Chart(document.getElementById("pieChart"), {
@@ -317,9 +351,12 @@ function renderHabitCharts() {
 }
 
 function restart() {
-    if (!confirm("Restart and clear all habits? This will reset the start date.")) return;
+    if (!confirm("Restart? This will clear all tracked data and reset to day 1.")) return;
 
-    habits = [];
+    // Clear the day data but keep habit names
+    habits.forEach(habit => {
+        habit.days = Array(DAYS).fill(false);
+    });
     save();
 
     startDate = truncateToDate(new Date());
@@ -330,3 +367,59 @@ function restart() {
 }
 
 render();
+
+// Weekly Tasks Functions
+function addWeeklyTask() {
+    const input = document.getElementById("weeklyInput");
+    const task = input.value.trim();
+    if (task === "") return;
+
+    weeklyTasks.push({
+        id: Date.now(),
+        task: task,
+        completed: false
+    });
+
+    input.value = "";
+    saveWeeklyTasks();
+    renderWeeklyTasks();
+}
+
+function saveWeeklyTasks() {
+    localStorage.setItem(STORAGE_WEEKLY_TASKS, JSON.stringify(weeklyTasks));
+}
+
+function renderWeeklyTasks() {
+    const list = document.getElementById("weeklyTaskList");
+    list.innerHTML = "";
+
+    weeklyTasks.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.className = item.completed ? "completed" : "";
+        li.innerHTML = `
+            <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleWeeklyTask(${index})">
+            <span>${item.task}</span>
+            <button onclick="deleteWeeklyTask(${index})" class="deleteBtn">Delete</button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+function toggleWeeklyTask(index) {
+    weeklyTasks[index].completed = !weeklyTasks[index].completed;
+    saveWeeklyTasks();
+    renderWeeklyTasks();
+}
+
+function deleteWeeklyTask(index) {
+    weeklyTasks.splice(index, 1);
+    saveWeeklyTasks();
+    renderWeeklyTasks();
+}
+
+// Notes Functions
+function saveNotes() {
+    notes = document.getElementById("notesArea").value;
+    localStorage.setItem(STORAGE_NOTES, notes);
+    alert("Notes saved!");
+}

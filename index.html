@@ -23,8 +23,15 @@
 <button onclick="restart()" class="restartBtn">Restart</button>
 
 <span id="counter"></span>
+<div id="progressSummary" class="summarySection"></div>
 
 </div>
+
+<div id="todayBanner" class="todayBanner">
+    <span id="todayBadge" class="todayBadge"></span>
+    <span id="todayBannerText" class="todayBannerText"></span>
+</div>
+<div id="weeklySummary" class="weeklySummary"></div>
 
 <div class="tableContainer">
 
@@ -42,13 +49,17 @@
 <div class="weeklySection">
 <input id="weeklyInput" placeholder="Add Weekly Task">
 <button onclick="addWeeklyTask()">Add Task</button>
+<button onclick="clearCompletedWeeklyTasks()" class="smallBtn secondaryBtn">Clear Completed</button>
 <ul id="weeklyTaskList"></ul>
 </div>
 
 <h2>Notes</h2>
 <div class="notesSection">
 <textarea id="notesArea" placeholder="Write your notes here..."></textarea>
-<button onclick="saveNotes()">Save Notes</button>
+<div class="notesFooter">
+    <button onclick="saveNotes()">Save Notes</button>
+    <span id="notesStatus" class="notesStatus"></span>
+</div>
 </div>
 
 <h2>Progress Reports</h2>

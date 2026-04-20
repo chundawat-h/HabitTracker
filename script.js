@@ -134,6 +134,36 @@ function getElapsedDays(totals) {
     return last; // 0 means no activity yet
 }
 
+function calculateStreaks() {
+    const currentDayIndex = getCurrentDayIndex();
+    if (habits.length === 0) {
+        return { currentStreak: 0, bestStreak: 0 };
+    }
+
+    const totals = calculateProgress().slice(0, currentDayIndex + 1);
+    let currentStreak = 0;
+    for (let i = currentDayIndex; i >= 0; i--) {
+        if (totals[i] === habits.length) {
+            currentStreak++;
+        } else {
+            break;
+        }
+    }
+
+    let bestStreak = 0;
+    let running = 0;
+    for (let i = 0; i <= currentDayIndex; i++) {
+        if (totals[i] === habits.length) {
+            running++;
+            bestStreak = Math.max(bestStreak, running);
+        } else {
+            running = 0;
+        }
+    }
+
+    return { currentStreak, bestStreak };
+}
+
 function editHabit(index) {
     const newName = prompt("Edit habit name:", habits[index].name);
     if (newName && newName.trim()) {
@@ -292,8 +322,86 @@ function render() {
     document.getElementById("counter").innerText =
         habits.length + " / 40 habits";
 
+    renderSummary();
+    renderTodayBanner();
+    renderWeeklySummary();
     updateCharts();
     renderHabitCharts();
+}
+
+function renderSummary() {
+    const currentDayIndex = getCurrentDayIndex();
+    const daysElapsed = currentDayIndex + 1;
+    const completedToday = habits.filter((h) => h.days[currentDayIndex]).length;
+    const todayPercent = habits.length
+        ? ((completedToday / habits.length) * 100).toFixed(1)
+        : "0.0";
+    const todayText = habits.length
+        ? `${completedToday} / ${habits.length} (${todayPercent}%)`
+        : `0 tasks (${todayPercent}%)`;
+    const { currentStreak, bestStreak } = calculateStreaks();
+    const summary = `Day ${daysElapsed} / ${DAYS} • Habits: ${habits.length} • Today: ${todayText} • Streak: ${currentStreak} (Best: ${bestStreak})`;
+    document.getElementById("progressSummary").innerText = summary;
+}
+
+function renderTodayBanner() {
+    const currentDayIndex = getCurrentDayIndex();
+    const dayNumber = currentDayIndex + 1;
+    const totalHabits = habits.length;
+    const completedToday = totalHabits
+        ? habits.filter((h) => h.days[currentDayIndex]).length
+        : 0;
+    const banner = document.getElementById("todayBanner");
+    if (!banner) return;
+
+    const badge = document.getElementById("todayBadge");
+    if (badge) {
+        if (totalHabits === 0) {
+            badge.innerText = "No habits yet";
+            badge.className = "todayBadge";
+        } else if (completedToday === totalHabits) {
+            badge.innerText = "All done today!";
+            badge.className = "todayBadge todayDone";
+        } else {
+            badge.innerText = `${completedToday}/${totalHabits} done`;
+            badge.className = "todayBadge";
+        }
+    }
+
+    const text = document.getElementById("todayBannerText");
+    if (!text) return;
+
+    if (totalHabits === 0) {
+        text.innerText = "Add habits to start your progress and build your streak.";
+    } else if (completedToday === totalHabits) {
+        text.innerText = `Today is Day ${dayNumber}. Great job — all habits completed!`;
+    } else {
+        text.innerText = `Today is Day ${dayNumber}. Complete more habits to keep your streak going.`;
+    }
+}
+
+function renderWeeklySummary() {
+    const weekly = document.getElementById("weeklySummary");
+    if (!weekly) return;
+
+    const currentDayIndex = getCurrentDayIndex();
+    const daysElapsed = currentDayIndex + 1;
+    const daysToShow = Math.min(daysElapsed, 7);
+    const startDay = Math.max(0, currentDayIndex - daysToShow + 1);
+    const totals = calculateProgress().slice(startDay, currentDayIndex + 1);
+
+    if (daysToShow === 0 || habits.length === 0) {
+        weekly.innerText = "Weekly summary will appear after you add habits and track today.";
+        return;
+    }
+
+    const totalChecks = totals.reduce((sum, value) => sum + value, 0);
+    const averagePercent = ((totalChecks / (habits.length * daysToShow)) * 100).toFixed(0);
+    const fullHabitDays = totals.filter((value) => value === habits.length).length;
+    const completedWeeklyTasks = weeklyTasks.filter((task) => task.completed).length;
+    const totalWeeklyTasks = weeklyTasks.length;
+
+    weekly.innerText = `Last ${daysToShow} day${daysToShow > 1 ? "s" : ""}: ${averagePercent}% average habit completion, ${fullHabitDays} full habit day${fullHabitDays === 1 ? "" : "s"}. Weekly tasks: ${completedWeeklyTasks}/${totalWeeklyTasks}.`;
 }
 
 // build small per-habit charts in the right-hand panel
@@ -421,5 +529,51 @@ function deleteWeeklyTask(index) {
 function saveNotes() {
     notes = document.getElementById("notesArea").value;
     localStorage.setItem(STORAGE_NOTES, notes);
-    alert("Notes saved!");
+    const status = document.getElementById("notesStatus");
+    if (status) {
+        status.innerText = "Notes saved.";
+        setTimeout(() => {
+            status.innerText = "";
+        }, 2000);
+    }
 }
+
+function clearCompletedWeeklyTasks() {
+    weeklyTasks = weeklyTasks.filter((task) => !task.completed);
+    saveWeeklyTasks();
+    renderWeeklyTasks();
+}
+
+// keyboard shortcuts for form inputs
+(function setupInputShortcuts() {
+    const habitInput = document.getElementById("habitInput");
+    const weeklyInput = document.getElementById("weeklyInput");
+    const notesArea = document.getElementById("notesArea");
+
+    if (habitInput) {
+        habitInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addHabit();
+            }
+        });
+    }
+
+    if (weeklyInput) {
+        weeklyInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addWeeklyTask();
+            }
+        });
+    }
+
+    if (notesArea) {
+        notesArea.addEventListener("keydown", (event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                event.preventDefault();
+                saveNotes();
+            }
+        });
+    }
+})();

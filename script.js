@@ -229,6 +229,7 @@ function updateCharts() {
         },
         options: {
             responsive: true,
+            backgroundColor: '#f8f9fa',
             scales: {
                 y: {
                     beginAtZero: true,
@@ -257,6 +258,7 @@ function updateCharts() {
             ],
         },
         options: {
+            backgroundColor: '#f8f9fa',
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -446,6 +448,7 @@ function renderHabitCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                backgroundColor: '#f8f9fa',
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -542,6 +545,37 @@ function clearCompletedWeeklyTasks() {
     weeklyTasks = weeklyTasks.filter((task) => !task.completed);
     saveWeeklyTasks();
     renderWeeklyTasks();
+}
+
+// Theme switching
+document.getElementById("themeSelect").addEventListener("change", function() {
+    const selectedTheme = this.value;
+    document.body.className = selectedTheme === "default" ? "" : selectedTheme + "-theme";
+    localStorage.setItem("selectedTheme", selectedTheme);
+    updateChartBackgrounds();
+});
+
+// Load saved theme
+const savedTheme = localStorage.getItem("selectedTheme") || "default";
+document.getElementById("themeSelect").value = savedTheme;
+document.body.className = savedTheme === "default" ? "" : savedTheme + "-theme";
+updateChartBackgrounds();
+
+function updateChartBackgrounds() {
+    const canvasBg = getComputedStyle(document.body).getPropertyValue('--canvas-bg').trim();
+    if (lineChart) {
+        lineChart.options.backgroundColor = canvasBg;
+        lineChart.update();
+    }
+    if (pieChart) {
+        pieChart.options.backgroundColor = canvasBg;
+        pieChart.update();
+    }
+    // Update individual charts if needed
+    habitCharts.forEach(chart => {
+        chart.options.backgroundColor = canvasBg;
+        chart.update();
+    });
 }
 
 // keyboard shortcuts for form inputs

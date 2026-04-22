@@ -7,6 +7,9 @@ let habits = JSON.parse(localStorage.getItem(STORAGE_HABITS)) || [];
 let weeklyTasks = JSON.parse(localStorage.getItem(STORAGE_WEEKLY_TASKS)) || [];
 let notes = localStorage.getItem(STORAGE_NOTES) || "";
 
+let currentWeek = 1;
+let displayedWeek = 1;
+
 const MAX_HABITS = 40;
 const DAYS = 365;
 
@@ -31,12 +34,22 @@ function loadStartDate() {
 }
 
 function getCurrentDayIndex() {
-    const today = truncateToDate(new Date());
+    const now = new Date();
+    // 2 AM rollover: Subtract 2 hours
+    const adjustedNow = new Date(now.getTime() - (2 * 60 * 60 * 1000));
+    const today = truncateToDate(adjustedNow);
     const diffMs = today - startDate;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     if (diffDays < 0) return 0;
     if (diffDays >= DAYS) return DAYS - 1;
     return diffDays;
+}
+
+function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 }
 
 function save() {
@@ -70,6 +83,22 @@ createHeader();
 
 // Initialize notes
 document.getElementById("notesArea").value = notes;
+
+// Initialize current week and displayed week
+const dayIndex = getCurrentDayIndex();
+currentWeek = Math.floor(dayIndex / 7) + 1;
+displayedWeek = currentWeek;
+
+// Migrate old weekly tasks to current week if they don't have a week property
+let changed = false;
+weeklyTasks = weeklyTasks.map(t => {
+    if (t.week === undefined) {
+        changed = true;
+        return { ...t, week: currentWeek };
+    }
+    return t;
+});
+if (changed) saveWeeklyTasks();
 
 // Render weekly tasks on load
 renderWeeklyTasks();
@@ -258,7 +287,7 @@ function updateCharts() {
             ],
         },
         options: {
-            backgroundColor: '#f8f9fa',
+            backgroundColor: '#08090bff',
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -308,9 +337,8 @@ function render() {
 
             row += `
                 <td
-                    class="${classes.join(" ")}"${
-                        isToday ? ` onclick="toggle(${hIndex},${dayIndex})"` : ""
-                    }
+                    class="${classes.join(" ")}"${isToday ? ` onclick="toggle(${hIndex},${dayIndex})"` : ""
+                }
                 >
                     ${d ? "✅" : ""}
                 </td>
@@ -326,9 +354,45 @@ function render() {
 
     renderSummary();
     renderTodayBanner();
+    renderDateDisplay();
     renderWeeklySummary();
     updateCharts();
     renderHabitCharts();
+    
+    // Auto-scroll to current day
+    setTimeout(scrollToCurrentDay, 100);
+}
+
+function renderDateDisplay() {
+    const dayIndex = getCurrentDayIndex();
+    const dayNumber = dayIndex + 1;
+    const today = new Date();
+    // For current date display, also use the 2 AM rollover logic to stay consistent
+    const adjustedToday = new Date(today.getTime() - (2 * 60 * 60 * 1000));
+    
+    const display = document.getElementById("dateDisplay");
+    if (display) {
+        display.innerText = `Starting date: ${formatDate(startDate)}, Current date: ${formatDate(adjustedToday)}, Day ${dayNumber}`;
+    }
+}
+
+function scrollToCurrentDay() {
+    const container = document.querySelector('.tableContainer');
+    const currentDayTh = document.querySelector('th.currentDay');
+    if (container && currentDayTh) {
+        const firstCol = document.querySelector('table th:first-child');
+        const firstColWidth = firstCol ? firstCol.offsetWidth : 0;
+        
+        // Find a representative day column width
+        const someDayTh = document.querySelector('th:not(:first-child)');
+        const colWidth = someDayTh ? someDayTh.offsetWidth : 40;
+        
+        // Target: current day is 4th visible day column.
+        // That means 3 day columns are visible before it.
+        // ScrollLeft = (currentDayTh.offsetLeft - firstColWidth) - (3 * colWidth)
+        const targetScroll = (currentDayTh.offsetLeft - firstColWidth) - (3 * colWidth);
+        container.scrollLeft = Math.max(0, targetScroll);
+    }
 }
 
 function renderSummary() {
@@ -502,18 +566,67 @@ function saveWeeklyTasks() {
 
 function renderWeeklyTasks() {
     const list = document.getElementById("weeklyTaskList");
+    const weekDisplay = document.getElementById("weeklyWeekDisplay");
+    if (!list || !weekDisplay) return;
+
+    weekDisplay.innerText = `Week ${displayedWeek}`;
     list.innerHTML = "";
 
-    weeklyTasks.forEach((item, index) => {
+    // Calculate max week
+    const maxWeek = Math.min(53, currentWeek + 8);
+    
+    // Update button states
+    const prevBtn = document.getElementById("prevWeekBtn");
+    const nextBtn = document.getElementById("nextWeekBtn");
+    if (prevBtn) prevBtn.disabled = displayedWeek <= 1;
+    if (nextBtn) nextBtn.disabled = displayedWeek >= maxWeek;
+
+    const filteredTasks = weeklyTasks.filter((item) => item.week === displayedWeek);
+
+    filteredTasks.forEach((item) => {
+        // Find real index in global array
+        const realIndex = weeklyTasks.findIndex(t => t.id === item.id);
         const li = document.createElement("li");
         li.className = item.completed ? "completed" : "";
         li.innerHTML = `
-            <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleWeeklyTask(${index})">
+            <input type="checkbox" ${item.completed ? "checked" : ""} onchange="toggleWeeklyTask(${realIndex})">
             <span>${item.task}</span>
-            <button onclick="deleteWeeklyTask(${index})" class="deleteBtn">Delete</button>
+            <button onclick="deleteWeeklyTask(${realIndex})" class="deleteBtn">Delete</button>
         `;
         list.appendChild(li);
     });
+}
+
+function prevWeek() {
+    if (displayedWeek > 1) {
+        displayedWeek--;
+        renderWeeklyTasks();
+    }
+}
+
+function nextWeek() {
+    const maxWeek = Math.min(53, currentWeek + 8);
+    if (displayedWeek < maxWeek) {
+        displayedWeek++;
+        renderWeeklyTasks();
+    }
+}
+
+function addWeeklyTask() {
+    const input = document.getElementById("weeklyInput");
+    const task = input.value.trim();
+    if (task === "") return;
+
+    weeklyTasks.push({
+        id: Date.now(),
+        task: task,
+        completed: false,
+        week: displayedWeek
+    });
+
+    input.value = "";
+    saveWeeklyTasks();
+    renderWeeklyTasks();
 }
 
 function toggleWeeklyTask(index) {
@@ -548,7 +661,7 @@ function clearCompletedWeeklyTasks() {
 }
 
 // Theme switching
-document.getElementById("themeSelect").addEventListener("change", function() {
+document.getElementById("themeSelect").addEventListener("change", function () {
     const selectedTheme = this.value;
     document.body.className = selectedTheme === "default" ? "" : selectedTheme + "-theme";
     localStorage.setItem("selectedTheme", selectedTheme);

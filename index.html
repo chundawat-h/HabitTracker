@@ -41,6 +41,7 @@
     <span id="todayBadge" class="todayBadge"></span>
     <span id="todayBannerText" class="todayBannerText"></span>
 </div>
+<div id="dateDisplay" class="dateDisplay"></div>
 <div id="weeklySummary" class="weeklySummary"></div>
 
 <div class="tableContainer">
@@ -57,6 +58,11 @@
 
 <h2>Weekly Tasks</h2>
 <div class="weeklySection">
+<div class="weeklyHeader">
+    <button onclick="prevWeek()" id="prevWeekBtn" class="smallBtn">&#8592;</button>
+    <span id="weeklyWeekDisplay">Week X</span>
+    <button onclick="nextWeek()" id="nextWeekBtn" class="smallBtn">&#8594;</button>
+</div>
 <input id="weeklyInput" placeholder="Add Weekly Task">
 <button onclick="addWeeklyTask()">Add Task</button>
 <button onclick="clearCompletedWeeklyTasks()" class="smallBtn secondaryBtn">Clear Completed</button>

@@ -76,7 +76,8 @@ table td:first-child {
     background: var(--habit-name-bg);
 }
 
-th, td {
+th,
+td {
     border: 1px solid var(--border-color);
     padding: 6px;
     font-size: 12px;
@@ -84,11 +85,12 @@ th, td {
 
 th {
     background: var(--th-bg);
-    color: white;
+    color: grey;
 }
 
 table th:first-child {
     background: var(--th-bg);
+    color: white;
 }
 
 td {
@@ -126,7 +128,7 @@ canvas {
     --text-color: #f3f4f6;
     --button-bg: #374151;
     --button-color: #c5cad2;
-    --table-bg:#1f2937;
+    --table-bg: #1f2937;
     --th-bg: #1f2937;
     --checked-bg: #10b981;
     --habit-name-bg: #6a6a89;
@@ -138,8 +140,8 @@ canvas {
 .pastel-theme {
     --bg-gradient: linear-gradient(135deg, #e4bed4, #eaa7cd);
     --text-color: #831843;
-    --button-bg: #f0ccdd;
-    --button-color: #ec4899;
+    --button-bg: #ec4899;
+    --button-color: #8f244f;
     --table-bg: #e4bed4;
     --th-bg: #ec4899;
     --checked-bg: #10b981;
@@ -150,7 +152,7 @@ canvas {
 
 /* Earthy Theme */
 .earthy-theme {
-    --bg-gradient: linear-gradient(135deg, #976953,#ddcbb7);
+    --bg-gradient: linear-gradient(135deg, #976953, #ddcbb7);
     --text-color: #ffffff;
     --button-bg: #7c5757;
     --button-color: #ecdcd3;
@@ -163,66 +165,66 @@ canvas {
 }
 
 
-.charts{
-    display:flex;
-    flex-direction:column;
-    gap:40px;
-    margin-top:40px;
+.charts {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    margin-top: 40px;
 }
 
-.main-charts{
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-    width:100%;
+.main-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
 }
 
-.individual-charts{
-    display:flex;
-    flex-wrap:wrap;
-    gap:20px;
-    justify-content:flex-start;
-    padding:10px;
+.individual-charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+    padding: 10px;
 }
 
-.habit-chart-wrapper{
-    width:calc(33.333% - 13.333px);
-    min-width:150px;
-    height:120px;
-    background:white;
-    padding:10px;
-    border-radius:10px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
+.habit-chart-wrapper {
+    width: calc(33.333% - 13.333px);
+    min-width: 150px;
+    height: 120px;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.habit-chart-title{
-    font-size:12px;
-    margin-bottom:4px;
-    text-align:center;
-    
+.habit-chart-title {
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-align: center;
+
 }
 
-.smallBtn{
-    margin-left:4px;
-    padding:2px 5px;
-    font-size:12px;
-    border:none;
-    border-radius:4px;
-    cursor:pointer;
+.smallBtn {
+    margin-left: 4px;
+    padding: 2px 5px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.smallBtn:hover{
-    opacity:0.8;
+.smallBtn:hover {
+    opacity: 0.8;
 }
 
-canvas{
-background:var(--canvas-bg);
-padding:20px;
-border-radius:10px;
-max-height:300px;
-width:100%;
+canvas {
+    background: var(--canvas-bg);
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 300px;
+    width: 100%;
 }
 
 @media (max-width: 900px) {
@@ -272,6 +274,7 @@ width:100%;
 }
 
 @media (max-width: 600px) {
+
     table th,
     table td {
         font-size: 10px;
@@ -287,6 +290,7 @@ width:100%;
         height: 120px;
     }
 }
+
 /* highlight current day column */
 th.currentDay {
     background: #ef0606;
@@ -301,7 +305,7 @@ th.currentDay {
     border-radius: 10px;
     color: #2d3436;
     font-weight: 600;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
@@ -335,7 +339,7 @@ th.currentDay {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 10px;
     color: #2d3436;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     font-weight: 500;
 }
 
@@ -371,7 +375,7 @@ td.today {
 
 .summarySection {
     margin-top: 10px;
-    color: var(--canvas-bg);
+    color: var(--text-color);
     font-size: 14px;
 }
 
@@ -383,6 +387,33 @@ td.today {
     margin: 20px auto;
     max-width: 600px;
     text-align: left;
+}
+
+.weeklyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 6px;
+}
+
+#weeklyWeekDisplay {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.dateDisplay {
+    max-width: 1000px;
+    margin: 0 auto 12px auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .weeklySection input {

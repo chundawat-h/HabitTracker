@@ -33,6 +33,11 @@ function loadStartDate() {
     return today;
 }
 
+function getWeekFromDayIndex(dayIdx) {
+    const startDayOfWeek = (startDate.getDay() + 6) % 7; // 0=Mon, ..., 6=Sun
+    return Math.floor((dayIdx + startDayOfWeek) / 7) + 1;
+}
+
 function getCurrentDayIndex() {
     const now = new Date();
     // 2 AM rollover: Subtract 2 hours
@@ -86,7 +91,7 @@ document.getElementById("notesArea").value = notes;
 
 // Initialize current week and displayed week
 const dayIndex = getCurrentDayIndex();
-currentWeek = Math.floor(dayIndex / 7) + 1;
+currentWeek = getWeekFromDayIndex(dayIndex);
 displayedWeek = currentWeek;
 
 // Migrate old weekly tasks to current week if they don't have a week property
@@ -358,7 +363,7 @@ function render() {
     renderWeeklySummary();
     updateCharts();
     renderHabitCharts();
-    
+
     // Auto-scroll to current day
     setTimeout(scrollToCurrentDay, 100);
 }
@@ -369,7 +374,7 @@ function renderDateDisplay() {
     const today = new Date();
     // For current date display, also use the 2 AM rollover logic to stay consistent
     const adjustedToday = new Date(today.getTime() - (2 * 60 * 60 * 1000));
-    
+
     const display = document.getElementById("dateDisplay");
     if (display) {
         display.innerText = `Starting date: ${formatDate(startDate)}, Current date: ${formatDate(adjustedToday)}, Day ${dayNumber}`;
@@ -382,11 +387,11 @@ function scrollToCurrentDay() {
     if (container && currentDayTh) {
         const firstCol = document.querySelector('table th:first-child');
         const firstColWidth = firstCol ? firstCol.offsetWidth : 0;
-        
+
         // Find a representative day column width
         const someDayTh = document.querySelector('th:not(:first-child)');
         const colWidth = someDayTh ? someDayTh.offsetWidth : 40;
-        
+
         // Target: current day is 4th visible day column.
         // That means 3 day columns are visible before it.
         // ScrollLeft = (currentDayTh.offsetLeft - firstColWidth) - (3 * colWidth)
@@ -452,8 +457,13 @@ function renderWeeklySummary() {
 
     const currentDayIndex = getCurrentDayIndex();
     const daysElapsed = currentDayIndex + 1;
-    const daysToShow = Math.min(daysElapsed, 7);
-    const startDay = Math.max(0, currentDayIndex - daysToShow + 1);
+
+    // Calculate start of the current week (Monday-based)
+    const startMondayIndex = (startDate.getDay() + 6) % 7;
+    const currentWeekIndex = Math.floor((currentDayIndex + startMondayIndex) / 7);
+    const startDay = Math.max(0, currentWeekIndex * 7 - startMondayIndex);
+    const daysToShow = currentDayIndex - startDay + 1;
+
     const totals = calculateProgress().slice(startDay, currentDayIndex + 1);
 
     if (daysToShow === 0 || habits.length === 0) {
@@ -467,7 +477,7 @@ function renderWeeklySummary() {
     const completedWeeklyTasks = weeklyTasks.filter((task) => task.completed).length;
     const totalWeeklyTasks = weeklyTasks.length;
 
-    weekly.innerText = `Last ${daysToShow} day${daysToShow > 1 ? "s" : ""}: ${averagePercent}% average habit completion, ${fullHabitDays} full habit day${fullHabitDays === 1 ? "" : "s"}. Weekly tasks: ${completedWeeklyTasks}/${totalWeeklyTasks}.`;
+    weekly.innerText = `Current week: ${averagePercent}% average habit completion, ${fullHabitDays} full habit day${fullHabitDays === 1 ? "" : "s"}. Weekly tasks: ${completedWeeklyTasks}/${totalWeeklyTasks}.`;
 }
 
 // build small per-habit charts in the right-hand panel
@@ -574,7 +584,7 @@ function renderWeeklyTasks() {
 
     // Calculate max week
     const maxWeek = Math.min(53, currentWeek + 8);
-    
+
     // Update button states
     const prevBtn = document.getElementById("prevWeekBtn");
     const nextBtn = document.getElementById("nextWeekBtn");
